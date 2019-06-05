@@ -17,13 +17,14 @@ async function transferAccounts(
   otherAddress: Map<string, string>
 ): Promise<messages.SendTransactionResponse[]> {
   let allPromise: Promise<messages.SendTransactionResponse>[] = [];
+  let nonce: number = 0;
+
   otherAddress.forEach((value: string, key: string) => {
     let p = new Promise(
       (
         resolve: (response: messages.SendTransactionResponse) => void,
         reject: (error: grpc.ServiceError) => void
       ): void => {
-        let nonce: number = 0;
         getAccountState(myselfAddress)
           .then((response: messages.GetAccountStateResponse) => {
             nonce === 0 ? response.getNonce() + 1 : nonce + 1;
