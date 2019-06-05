@@ -15,13 +15,14 @@ const apiClient = Client.apiServiceClient(address);
 async function transferAccounts(
   myselfAddress: string,
   otherAddress: Map<string, string>
-): Promise<messages.SendTransactionResponse> {
-  return new Promise(
-    (
-      resolve: (response: messages.SendTransactionResponse) => void,
-      reject: (error: grpc.ServiceError) => void
-    ): void => {
-      otherAddress.forEach((value: string, key: string) => {
+): Promise<messages.SendTransactionResponse[]> {
+  let allPromise: Promise<messages.SendTransactionResponse>[] = [];
+  otherAddress.forEach((value: string, key: string) => {
+    let p = new Promise(
+      (
+        resolve: (response: messages.SendTransactionResponse) => void,
+        reject: (error: grpc.ServiceError) => void
+      ): void => {
         let nonce: number = 0;
         getAccountState(myselfAddress)
           .then((response: messages.GetAccountStateResponse) => {
@@ -49,9 +50,13 @@ async function transferAccounts(
           .catch((reason: grpc.ServiceError) => {
             console.log(reason.message);
           });
-      });
-    }
-  );
+      }
+    );
+
+    allPromise.push(p);
+  });
+
+  return Promise.all(allPromise);
 }
 
 /**
